@@ -6,12 +6,16 @@ from libavg import avg
 import OSC
 import socket
 
-HOST='localhost'
-PORT=2222
+HOST='10.0.0.142'
+#HOST='localhost'
+PORT=9000
 
 global OSCSocket
 
 def onTouch():
+    global OSCSocket
+    global HOST
+    global PORT
     Event = Player.getCurEvent()
     if Event.type == avg.MOUSEBUTTONDOWN:
         Type = "down"
@@ -21,7 +25,7 @@ def onTouch():
         Type = "motion"
     else:
         print Event.type
-    msg = OSC.Message('/touch/'+Type, Event.cursorid, Event.x, Event.y)
+    msg = OSC.Message('/touch/'+Type, ',iff', int(Event.cursorid), float(Event.x), float(Event.y))
     print msg.get_packet()
     OSCSocket.sendto(msg.get_packet(), (HOST, PORT))
 
