@@ -4,16 +4,15 @@
 import os
 from libavg import avg
 import OSC
+import controller
 import socket
 
 HOST='10.0.0.142'
 #HOST='localhost'
 PORT=9000
 
-global OSCSocket
-
 def onTouch():
-    global OSCSocket
+    global OSCController
     global HOST
     global PORT
     Event = Player.getCurEvent()
@@ -25,9 +24,7 @@ def onTouch():
         Type = "motion"
     else:
         print Event.type
-    msg = OSC.Message('/touch/'+Type, ',iff', int(Event.cursorid), float(Event.x), float(Event.y))
-    print msg.get_packet()
-    OSCSocket.sendto(msg.get_packet(), (HOST, PORT))
+    OSCController.sendMsg('/touch/'+Type, int(Event.cursorid), float(Event.x), float(Event.y))
 
 Player = avg.Player()
 Log = avg.Logger.get()
@@ -42,5 +39,5 @@ Log.setCategories(Log.APP |
 Player.loadFile("remote.avg")
 Player.setFramerate(60)
 Tracker = Player.addTracker("/dev/video1394/0", 30, "640x480_MONO8")
-OSCSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+OSCController = controller.Controller((HOST, PORT), verbose=True)
 Player.play()

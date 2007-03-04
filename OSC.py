@@ -1,365 +1,386 @@
-# ===========================================================================
-# File:		OSC.py
-# Author:	Stefan Kersten <steve@k-hornz.de>
-# Contents:	PyOSC client module
-# ===========================================================================
-# $Id: OSC.py,v 1.2 2000/11/28 20:09:59 steve Exp steve $
-# ===========================================================================
+#!/usr/bin/python
 #
-# Copyright (C) 2000 Stefan Kersten
+# Open SoundControl for Python
+# Copyright (C) 2002 Daniel Holth, Clinton McChesney
 #
-# This module is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
+# This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# ===========================================================================
+# For questions regarding this module contact 
+# Daniel Holth <dholth@stetson.edu> or visit
+# http://www.stetson.edu/~ProctoLogic/
+#
+# Changelog:
+# 15 Nov. 2001:
+#   Removed dependency on Python 2.0 features.
+#   - dwh
+# 13 Feb. 2002:
+#   Added a generic callback handler.
+#   - dwh
 
-"""Python classes for OpenSoundControl library client functionality.
-
-Inspired by Markus Gaelli's classes for Squeak.
-
-The OSC homepage is at
-
-	http://cnmat.cnmat.berkeley.edu/OpenSoundControl/
-
-This module provides support for OSC client functionality. The classes
-Message, Bundle and TimeTag can be used to construct proper OSC
-messages; the resulting binary string can then be sent over a network
-with the standard `socket()' calls.
-
-Note that the OSC library currently relies on UDP, so you will
-most likely use the `SOCK_DGRAM' protocol in your application.
-
-Classes:
-
-Message     		-- Single OSC message with arguments
-Bundle			-- Groups of OSC messages with timing information
-TimeTag    		-- Real valued time type for OSC bundles
-
-Functions:
-
-binary_value		-- Construct a BinaryValue from a Python type
-tt			-- Construct a new TimeTag from an existing one or
-			   a numeric value
-
-Exceptions:
-
-TypeError
-
-"""
-
-__revision__ = "$Revision: 1.2 $"
-
-import math
-import socket
-import cStringIO
 import struct
-import types
+import math
+import sys
+import string
+
+def hexDump(bytes):
+    """Useful utility; prints the string in hexadecimal"""
+    for i in range(len(bytes)):
+        sys.stdout.write("%2x " % (ord(bytes[i])))
+        if (i+1) % 8 == 0:
+            print repr(bytes[i-7:i+1])
+
+    if(len(bytes) % 8 != 0):
+        print string.rjust("", 11), repr(bytes[i-7:i+1])
 
 
-class BinaryValue:
-    """Abstract value holder.
+class OSCMessage:
+    """Builds typetagged OSC messages."""
+    def __init__(self):
+        self.address  = ""
+        self.typetags = ","
+        self.message  = ""
 
-    BinaryValue's subclasses know how to convert their value
-    into a binary representation suitable for usage with OSC.
-    """
-    def __init__(self, value):
-        self._value = value
+    def setAddress(self, address):
+        self.address = address
 
-    def get_value(self):
-        """Return the value the receiver is holding."""
-        return self._value
-    
-    def get_binary_value(self):
-        """Return the binary representation of the receiver's value."""
-        pass
+    def setMessage(self, message):
+	self.message = message
+
+    def setTypetags(self, typetags):
+	self.typetags = typetags
+
+    def clear(self):
+	self.address  = ""
+	self.clearData()
+
+    def clearData(self):
+        self.typetags = ","
+        self.message  = ""
+
+    def append(self, argument, typehint = None):
+        """Appends data to the message,
+        updating the typetags based on
+        the argument's type.
+        If the argument is a blob (counted string)
+        pass in 'b' as typehint."""
+
+        if typehint == 'b':
+            binary = OSCBlob(argument)
+        else:
+            binary = OSCArgument(argument)
+
+        self.typetags = self.typetags + binary[0]
+        self.rawAppend(binary[1])
+
+    def rawAppend(self, data):
+        """Appends raw data to the message.  Use append()."""
+        self.message = self.message + data
+
+    def getBinary(self):
+        """Returns the binary message (so far) with typetags."""
+        address  = OSCArgument(self.address)[1]
+        typetags = OSCArgument(self.typetags)[1]
+        return address + typetags + self.message
 
     def __repr__(self):
-        return '<' + \
-               str(self.__class__.__name__) + \
-               ' instance, value=' + \
-               str(self.get_value()) + \
-               '>'
+        return self.getBinary()
+
+def readString(data):
+    length   = string.find(data,"\0")
+    nextData = int(math.ceil((length+1) / 4.0) * 4)
+    return (data[0:length], data[nextData:])
+
+
+def readBlob(data):
+    length   = struct.unpack(">i", data[0:4])[0]    
+    nextData = int(math.ceil((length) / 4.0) * 4) + 4   
+    return (data[4:length+4], data[nextData:])
+
+
+def readInt(data):
+    if(len(data)<4):
+        print "Error: too few bytes for int", data, len(data)
+        rest = data
+        integer = 0
+    else:
+        integer = struct.unpack(">i", data[0:4])[0]
+        rest    = data[4:]
+        
+    return (integer, rest)
+
+
+
+def readLong(data):
+    """Tries to interpret the next 8 bytes of the data
+    as a 64-bit signed integer."""
+    high, low = struct.unpack(">ll", data[0:8])
+    big = (long(high) << 32) + low
+    rest = data[8:]
+    return (big, rest)
+
+
+def readDouble(data):
+    """Tries to interpret the next 8 bytes of the data
+    as a 64-bit double float."""
+    floater = struct.unpack(">d", data[0:8])
+    big = float(floater[0])
+    rest = data[8:]
+    return (big, rest)
+
+def readFloat(data):
+    if(len(data)<4):
+        print "Error: too few bytes for float", data, len(data)
+        rest = data
+        floater = 0
+    else:
+        floater = struct.unpack(">f", data[0:4])[0]
+        rest  = data[4:]
+    return (floater, rest)
+
+
+def OSCBlob(next):
+    """Convert a string into an OSC Blob,
+    returning a (typetag, data) tuple."""
+
+    if type(next) == type(""):
+        length = len(next)
+        padded = math.ceil((len(next)) / 4.0) * 4
+        binary = struct.pack(">i%ds" % (padded), length, next)
+        tag    = 'b'
+    else:
+        tag    = ''
+        binary = ''
     
-class BinaryInteger(BinaryValue):
-    """Holds an integer value (32 bit).
+    return (tag, binary)
 
-    BinaryInteger(value) -> BinaryInteger
 
-    value	-- integer
-    """
-    def get_binary_value(self):
-        return struct.pack('l', long(self._value))
-
-class BinaryFloat(BinaryValue):
-    """Holds a floating point value (32 bit).
-
-    BinaryFloat(value) -> BinaryFloat
-
-    value	-- float
-    """
-    def get_binary_value(self):
-        return struct.pack('f', self._value)
-
-class BinaryString(BinaryValue):
-    """Holds a string value.
-
-    BinaryString(value) -> BinaryString
-
-    value	-- string
+def OSCArgument(next):
+    """Convert some Python types to their
+    OSC binary representations, returning a
+    (typetag, data) tuple."""
     
-    The strings binary representation is padded with NULL chars
-    to make its length a multiple of 4.
-    """
-    def get_binary_value(self):
-        value = self._value
-        size = len(value)
-        return struct.pack('%ds%dx' % (size, 4 - (size % 4)), value)
+    if type(next) == type(""):        
+        OSCstringLength = math.ceil((len(next)+1) / 4.0) * 4
+        binary  = struct.pack(">%ds" % (OSCstringLength), next)
+        tag = "s"
+    elif type(next) == type(42.5):
+        binary  = struct.pack(">f", next)
+        tag = "f"
+    elif type(next) == type(13):
+        binary  = struct.pack(">i", next)
+        tag = "i"
+    else:
+        binary  = ""
+        tag = ""
 
-def binary_value(value):
-    """Return an appropriate BinaryValue according to value's type.
-
-    Private.
-
-    Exceptions:
-    	TypeError	-- the type of value cannot be handled
-    """
-    t = type(value)
-    # Integer
-    if t == types.IntType or t == types.LongType:
-        return BinaryInteger(value)
-    # Float
-    if t == types.FloatType:
-        return BinaryFloat(value)
-    # String
-    if t == types.StringType:
-        return BinaryString(value)
-    raise TypeError, 'invalid OSC-type ' + str(t)
+    return (tag, binary)
 
 
-class TimeTag(BinaryValue):
-    """Real valued data type for OSC timing information.
-
-    TimeTag(value) -> TimeTag
-
-    value	-- an instance of TimeTag or a numeric value
-    
-    The current time-value can be retrieved with two methods:
-
-    get_value		-- Returns the floating point value of the receiver
-    get_values		-- Returns a tuple of integers (seconds, fraction),
-    			   representing the integer part in seconds and the
-                           fractional part in nanoseconds respectively; this
-                           is the format actually used in OSC.
-    """
-    def __init__(self, value):
-        if isinstance(value, TimeTag):
-            value = value._value
-        else:
-            try:
-                value = float(abs(value))
-            except:
-                raise TypeError, 'TimeTag can only be created from another TimeTag or a number'
-        BinaryValue.__init__(self, value)
-    
-    def get_values(self):
-        """Return the tuple (seconds, fraction).
-
-        See class comment.
-        """
-        fract, int = math.modf(self._value)
-        return (long(int), long(fract * 1e9))
-
-    def add(self, number):
-        """Add number to the receiver's time value and return a new TimeTag."""
-        return self.__class__(self._value + number)
-
-    def sub(self, number):
-        """Subtract number from the receiver's time value and return a new TimeTag.
-
-        Values less than zero are truncated to zero.
-        """
-        delta = self._value - number
-        if delta < 0:
-            return self.__class__(0)
-        else:
-            return self.__class__(delta)
-
-    def delta(self, timetag):
-        """Return the difference between the receiver and timetag as a float."""
-        return self._value - timetag._value
-
-    def __cmp__(self, timetag):
-        """Comparison is defined between TimeTag(s) and numbers."""
-        value = self._value
-        ovalue = timetag._value
-        if value < ovalue:
-            return -1
-        if value > ovalue:
-            return 1
-        return 0
-
-    def __coerce__(self, other):
-        return (self, self.__class__(other))
-
-    def get_binary_value(self):
-        seconds, fraction = self.get_values()
-        return struct.pack('ll', seconds, fraction)
-
-def tt(object):
-    """Constructor function for convenience.
-
-    Returns a new TimeTag.
-    """
-    return TimeTag(object)
-
-
-class Packet:
-    """Abstract base class for all OSC-related containers.
-
-    Has methods for retrieving the proper binary representation
-    and its size.
-    """
-    def __init__(self, *packets):
-        stream = cStringIO.StringIO()
-        self.write_packets(packets, stream)
-        self._data = stream.getvalue()
-
-    def get_packet(self):
-        """Return the binary representation of the receiver's contents.
-
-        This data is in the proper OSC format and can be sent over a
-        socket.
-        """
-        return self._data
-
-    def get_size(self):
-        """Return the size of the receiver's binary data."""
-        return len(self._data)
-    
-    def write_packets(self, packets, stream):
-        """Write packets on stream.
-
-        Private.
-
-        Override in subclasses for specific behavior.
-        """
-        pass
-
-    def __repr__(self):
-        return '<' + \
-               str(self.__class__.__name__) + \
-               ' instance, size=' + \
-               str(self.get_size()) + \
-               '>'
-
-    # For testing purposes only:    
-    def sendto(self, address, port):
-        """Send the receiver's data over a UDP socket.
-
-        Use for testing only; use functions from the socket
-        module instead.
-        """
-        s = socket.socket(socket.SOCK_DGRAM, socket.AF_INET)
-        packet = self.get_packet()
-        s.sendto(packet, (address, port))
-
-    def sendto_me(self, port):
-        """Send the receiver's data over a UDP socket to the local machine.
-
-        See the comment for sendto().
-        """
-        self.sendto('localhost', port)
-
-
-class Message(Packet):
-    """Single OSC message with arguments.
-
-    Message(*values) -> Message
-    
-    values 	-- OSC basic types (integer, float, string)
-    		   values[0] should be a address string (unchecked)
-    """
-    def write_packets(self, packets, stream):
-        for value in packets:
-            bin_value = binary_value(value)
-            stream.write(bin_value.get_binary_value())
-
-
-class Bundle(Packet):
-    """OSC container type with timing information.
-
-    Bundle(*packets) -> Bundle
-
-    packets	-- subclasses of Packet
-		   packets[0] must be a TimeTag instance
-
-    """
-    def write_packets(self, packets, stream):
-        # Write '#bundle' preamble
-        bundle = BinaryString('#bundle')
-        stream.write(bundle.get_binary_value())
-        # Write timetag
+def parseArgs(args):
+    """Given a list of strings, produces a list
+    where those strings have been parsed (where
+    possible) as floats or integers."""
+    parsed = []
+    for arg in args:
+        print arg
+        arg = arg.strip()
+        interpretation = None
         try:
-            stream.write(packets[0].get_binary_value())
+            interpretation = float(arg)
+            if string.find(arg, ".") == -1:
+                interpretation = int(interpretation)
         except:
-            raise TypeError, 'packets[0] must be a TimeTag'
-        # Write all packets, prefixed with a byte count
-        for packet in packets[1:]:
-            data = packet.get_packet()
-            size = BinaryInteger(len(data))
-            stream.write(size.get_binary_value())
-            stream.write(data)
+            # Oh - it was a string.
+            interpretation = arg
+            pass
+        parsed.append(interpretation)
+    return parsed
 
 
-def _example(host='localhost', port=2222):
-    import socket
 
-    print "\n--- PyOSC example ---\n"
+def decodeOSC(data):
+    """Converts a typetagged OSC message to a Python list."""
+    table = {"i":readInt, "f":readFloat, "s":readString, "b":readBlob}
+    decoded = []
+    address,  rest = readString(data)
+    typetags = ""
 
-    m1 = Message('/spam/and/eggs', 2278, 12.0, 'Who has got my MoJo, eh?')
-    m2 = Message('/scoo/bee/doo', 1.0, 'Minime has it.', 2.345, 45.76, 2.312, 999.00238)
-    m3 = Message('/oops/i/did-it', 'again', 12341, 'Ouch!')
+    if address == "#bundle":
+        time, rest = readLong(rest)
+        decoded.append(address)
+        decoded.append(time)
+        while len(rest)>0:
+            length, rest = readInt(rest)
+            decoded.append(decodeOSC(rest[:length]))
+            rest = rest[length:]
 
-    i = 1
-    for m in [m1, m2, m3]:
-        data = m.get_packet()
-        size = len(data)
-        print 'Message %d (size %d):' % (i, size)
-        print data
-        print
+    elif len(rest)>0:
+        typetags, rest = readString(rest)
+        decoded.append(address)
+        decoded.append(typetags)
+        if(typetags[0] == ","):
+            for tag in typetags[1:]:
+                value, rest = table[tag](rest)                
+                decoded.append(value)
+        else:
+            print "Oops, typetag lacks the magic ,"
 
-    t = tt(0)
-    b = Bundle(t, m1,
-               Bundle(t.add(3.56), m1, m2),
-               Bundle(t.add(3.67), m3))
-    data = b.get_packet()
-    size = len(data)
-    print 'Bundle (size %d):' % (size,)
-    print data
-    print
+    # return only the data
+    return decoded[2:]
 
-    print "\nCreating socket ..."
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    print "Sending packets:"
+class CallbackManager:
+    """This utility class maps OSC addresses to callables.
 
-    for p in [m1, m2, m3, b]:
-        s.sendto(p.get_packet(), (host, port))
+    The CallbackManager calls its callbacks with a list
+    of decoded OSC arguments, including the address and
+    the typetags as the first two arguments."""
 
-    print "Exiting ..."
+    def __init__(self):
+        self.callbacks = {}
+        self.add(self.unbundler, "#bundle")
+
+    def handle(self, data, source = None):
+        """Given OSC data, tries to call the callback with the
+        right address."""
+        decoded = decodeOSC(data)
+        self.dispatch(decoded)
+
+    def dispatch(self, message):
+        """Sends decoded OSC data to an appropriate calback"""
+        try:
+            address = message[0]
+            self.callbacks[address](message)
+        except KeyError, e:
+            # address not found
+            print 'foo'
+            pass
+        except None, e:
+            print "Exception in", address, "callback :", e
+        
+        return
+
+    def add(self, callback, name):
+        """Adds a callback to our set of callbacks,
+        or removes the callback with name if callback
+        is None."""
+        if callback == None:
+            del self.callbacks[name]
+        else:
+            self.callbacks[name] = callback
+
+    def unbundler(self, messages):
+        """Dispatch the messages in a decoded bundle."""
+        # first two elements are #bundle and the time tag, rest are messages.
+        for message in messages[2:]:
+            self.dispatch(message)
+
 
 if __name__ == "__main__":
-    _example()
+    hexDump("Welcome to the OSC testing program.")
+    print
+    message = OSCMessage()
+    message.setAddress("/foo/play")
+    message.append(44)
+    message.append(11)
+    message.append(4.5)
+    message.append("the white cliffs of dover")
+    hexDump(message.getBinary())
 
+    print "Making and unmaking a message.."
 
+    strings = OSCMessage()
+    strings.append("Mary had a little lamb")
+    strings.append("its fleece was white as snow")
+    strings.append("and everywhere that Mary went,")
+    strings.append("the lamb was sure to go.")
+    strings.append(14.5)
+    strings.append(14.5)
+    strings.append(-400)
+
+    raw  = strings.getBinary()
+
+    hexDump(raw)
+    
+    print "Retrieving arguments..."
+    data = raw
+    for i in range(6):
+        text, data = readString(data)
+        print text
+
+    number, data = readFloat(data)
+    print number
+
+    number, data = readFloat(data)
+    print number
+
+    number, data = readInt(data)
+    print number
+
+    hexDump(raw)
+    print decodeOSC(raw)
+    print decodeOSC(message.getBinary())
+
+    print "Testing Blob types."
+   
+    blob = OSCMessage() 
+    blob.append("","b")
+    blob.append("b","b")
+    blob.append("bl","b")
+    blob.append("blo","b")
+    blob.append("blob","b")
+    blob.append("blobs","b")
+    blob.append(42)
+
+    hexDump(blob.getBinary())
+
+    print decodeOSC(blob.getBinary())
+
+    def printingCallback(stuff):
+        sys.stdout.write("Got: ")
+        for i in stuff:
+            sys.stdout.write(str(i) + " ")
+        sys.stdout.write("\n")
+
+    print "Testing the callback manager."
+    
+    c = CallbackManager()
+    c.add(printingCallback, "/print")
+    
+    c.handle(message.getBinary())
+    message.setAddress("/print")
+    c.handle(message.getBinary())
+    
+    print1 = OSCMessage()
+    print1.setAddress("/print")
+    print1.append("Hey man, that's cool.")
+    print1.append(42)
+    print1.append(3.1415926)
+
+    c.handle(print1.getBinary())
+
+    bundle = OSCMessage()
+    bundle.setAddress("")
+    bundle.append("#bundle")
+    bundle.append(0)
+    bundle.append(0)
+    bundle.append(print1.getBinary(), 'b')
+    bundle.append(print1.getBinary(), 'b')
+
+    bundlebinary = bundle.message
+
+#    print "sending a bundle to the callback manager"
+# This breaks I dunno why.  Good thing I don't use it JS.
+#    c.handle(bundlebinary)
