@@ -2,4 +2,5 @@
 <avg id="main" width="1280" height="720" 
         ontouchdown="onTouch" ontouchup="onTouch" ontouchmove="onTouch"
         onmousedown="onTouch" onmouseup="onTouch" onmousemove="onTouch">
+    <image id="fingers" x="0" y="0" width="1280" height="720" sensitive="false"/>
 </avg>
