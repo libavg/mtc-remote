@@ -16,16 +16,22 @@ def onTouch():
     global HOST
     global PORT
     Event = Player.getCurEvent()
-    if Event.type == avg.MOUSEBUTTONDOWN or Event.type == avg.TOUCHDOWN:
+    if Event.type == avg.CURSORDOWN:
         Type = "down"
-    elif Event.type == avg.MOUSEBUTTONUP or Event.type == avg.TOUCHUP:
+    elif Event.type == avg.CURSORUP:
         Type = "up"
-    elif Event.type == avg.MOUSEMOTION or Event.type == avg.TOUCHMOTION:
+    elif Event.type == avg.CURSORMOTION:
         Type = "motion"
     else:
         print Event.type
     OSCController.sendMsg('/touch/'+Type, int(Event.cursorid), 
             float(Event.x), float(Event.y))
+
+def onKeyUp():
+    Event = Player.getCurEvent()
+    if Event.keystring == "s":
+        Tracker.saveConfig()
+        print ("Tracker configuration saved.")
 
 def flipBitmap(Node):
     for y in range(Node.getNumVerticesY()):

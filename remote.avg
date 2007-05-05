@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
-<avg id="main" width="1280" height="720" 
-        ontouchdown="onTouch" ontouchup="onTouch" ontouchmove="onTouch"
-        onmousedown="onTouch" onmouseup="onTouch" onmousemove="onTouch">
+<avg id="main" width="1280" height="720" onkeyup="onKeyUp" 
+        oncursordown="onTouch" oncursorup="onTouch" oncursormove="onTouch">
     <image id="fingers" x="0" y="0" width="1280" height="720" sensitive="false"/>
 </avg>
