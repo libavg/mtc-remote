@@ -62,7 +62,7 @@ Log.setCategories(Log.APP |
                  )
 Player.loadFile("remote.avg")
 Player.setFramerate(60)
-Tracker = Player.addTracker("/dev/video1394/0", 60, "640x480_MONO8")
+Tracker = Player.addTracker("/dev/video1394/0", "640x480_MONO8")
 Tracker.setDebugImages(False, True)
 OSCController = controller.Controller((HOST, PORT), verbose=True)
 Player.setInterval(1, onFrame)
