@@ -51,11 +51,11 @@ def onFrame():
 
 Player = avg.Player()
 Log = avg.Logger.get()
-#Player.setResolution(0, 640, 0, 0) 
-Player.setResolution(1, 0, 0, 0) 
+Player.setResolution(0, 640, 0, 0) 
+#Player.setResolution(1, 0, 0, 0) 
 Log.setCategories(Log.APP |
                   Log.WARNING | 
-#                  Log.PROFILE |
+                  Log.PROFILE |
                   Log.CONFIG
 #                  Log.EVENTS 
 #                  Log.EVENTS2
