@@ -7,7 +7,7 @@ import OSC
 import controller
 import socket
 
-HOST='10.0.0.142'
+HOST='192.168.1.2'
 #HOST='localhost'
 PORT=9000
 
@@ -16,16 +16,17 @@ def onTouch():
     global HOST
     global PORT
     Event = Player.getCurEvent()
-    if Event.type == avg.CURSORDOWN:
-        Type = "down"
-    elif Event.type == avg.CURSORUP:
-        Type = "up"
-    elif Event.type == avg.CURSORMOTION:
-        Type = "motion"
-    else:
-        print Event.type
-    OSCController.sendMsg('/touch/'+Type, int(Event.cursorid), 
-            float(Event.x), float(Event.y))
+    if Event.source != avg.TRACK:
+        if Event.type == avg.CURSORDOWN:
+            Type = "down"
+        elif Event.type == avg.CURSORUP:
+            Type = "up"
+        elif Event.type == avg.CURSORMOTION:
+            Type = "motion"
+        else:
+            print Event.type
+        OSCController.sendMsg('/touch/'+Type, int(Event.cursorid), 
+                float(Event.x), float(Event.y))
 
 def onKeyUp():
     Event = Player.getCurEvent()
@@ -62,7 +63,7 @@ Log.setCategories(Log.APP |
                  )
 Player.loadFile("remote.avg")
 Player.setFramerate(60)
-Tracker = Player.addTracker("/dev/video1394/0", "640x480_MONO8")
+Tracker = Player.addTracker()
 Tracker.setDebugImages(False, True)
 OSCController = controller.Controller((HOST, PORT), verbose=True)
 Player.setInterval(1, onFrame)
