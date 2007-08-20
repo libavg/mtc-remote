@@ -11,11 +11,10 @@ HOST='192.168.1.2'
 #HOST='localhost'
 PORT=9000
 
-def onTouch():
+def onTouch(Event):
     global OSCController
     global HOST
     global PORT
-    Event = Player.getCurEvent()
     if Event.source != avg.TRACK:
         if Event.type == avg.CURSORDOWN:
             Type = "down"
@@ -28,8 +27,7 @@ def onTouch():
         OSCController.sendMsg('/touch/'+Type, int(Event.cursorid), 
                 float(Event.x), float(Event.y))
 
-def onKeyUp():
-    Event = Player.getCurEvent()
+def onKeyUp(Event):
     if Event.keystring == "s":
         Tracker.saveConfig()
         print ("Tracker configuration saved.")
