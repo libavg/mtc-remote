@@ -33,11 +33,11 @@ def onKeyUp(Event):
         print ("Tracker configuration saved.")
 
 def flipBitmap(Node):
-    for y in range(Node.getNumVerticesY()):
-        for x in range(Node.getNumVerticesX()):
-            pos = Node.getOrigVertexCoord(x,y)
-            pos.y = 1-pos.y
-            Node.setWarpedVertexCoord(x,y,pos)
+    Grid = Node.getOrigVertexCoords()
+    for Line in Grid:
+        for Pos in Line:
+            Pos.y = 1-Pos.y
+    Node.setWarpedVertexCoords(Grid)
 
 def onFrame():
     global Tracker
