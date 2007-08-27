@@ -34,9 +34,7 @@ def onKeyUp(Event):
 
 def flipBitmap(Node):
     Grid = Node.getOrigVertexCoords()
-    for Line in Grid:
-        for Pos in Line:
-            Pos.y = 1-Pos.y
+    Grid = [ [ (pos[0], 1-pos[1]) for pos in line ] for line in Grid]
     Node.setWarpedVertexCoords(Grid)
 
 def onFrame():
