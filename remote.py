@@ -7,10 +7,6 @@ import OSC
 import controller
 import socket
 
-HOST='192.168.1.2'
-#HOST='localhost'
-PORT=9000
-
 def onTouch(Event):
     global OSCController
     global HOST
@@ -24,8 +20,9 @@ def onTouch(Event):
             Type = "motion"
         else:
             print Event.type
-        OSCController.sendMsg('/touch/'+Type, int(Event.cursorid), 
-                float(Event.x), float(Event.y))
+        if OSCController:
+            OSCController.sendMsg('/touch/'+Type, int(Event.cursorid), 
+                    float(Event.x), float(Event.y))
 
 def onKeyUp(Event):
     if Event.keystring == "s":
@@ -61,6 +58,13 @@ Player.loadFile("remote.avg")
 Player.setFramerate(60)
 Tracker = Player.addTracker()
 Tracker.setDebugImages(False, True)
-OSCController = controller.Controller((HOST, PORT), verbose=True)
+Host = os.getenv("AVG_REMOTE_HOST")
+Port = os.getenv("AVG_REMOTE_PORT")
+if Host == None or Port == None:
+    Log.trace(Log.WARNING, "AVG_REMOTE_HOST and/or AVG_REMOTE_PORT not set. OSC server not available.")
+    OSCController = None
+else:
+    OSCController = controller.Controller((Host, int(Port)), verbose=True)
+    Log.trace(Log.CONFIG, "OSC server opened and sending to Host "+Host+", port "+str(int(Port)))
 Player.setInterval(1, onFrame)
 Player.play()
