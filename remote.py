@@ -25,9 +25,29 @@ def onTouch(Event):
                     float(Event.x), float(Event.y))
 
 def onKeyUp(Event):
-    if Event.keystring == "s":
-        Tracker.saveConfig()
-        print ("Tracker configuration saved.")
+    global Tracker
+    global CurImage
+    if Event.keystring == "1":
+        CurImage = avg.IMG_CAMERA
+        Tracker.setDebugImages(True, False)
+    elif Event.keystring == "2":
+        CurImage = avg.IMG_DISTORTED
+        Tracker.setDebugImages(True, False)
+    elif Event.keystring == "3":
+        CurImage = avg.IMG_NOHISTORY
+        Tracker.setDebugImages(True, False)
+    elif Event.keystring == "4":
+        CurImage = avg.IMG_HISTOGRAM
+        Tracker.setDebugImages(True, False)
+    elif Event.keystring == "5":
+        CurImage = avg.IMG_FINGERS
+        Tracker.setDebugImages(False, True)
+    elif Event.keystring == "6":
+        CurImage = avg.IMG_HIGHPASS
+        Tracker.setDebugImages(True, False)
+    elif Event.keystring == "7":
+        CurImage = None
+        Tracker.setDebugImages(False, False)
 
 def flipBitmap(Node):
     Grid = Node.getOrigVertexCoords()
@@ -36,12 +56,14 @@ def flipBitmap(Node):
 
 def onFrame():
     global Tracker
-    Bitmap = Tracker.getImage(avg.IMG_FINGERS)
-    Node = Player.getElementByID("fingers")
-    Node.setBitmap(Bitmap)
-    Node.width=1280
-    Node.height=720
-    flipBitmap(Node)
+    global CurImage
+    if CurImage != None:
+        Bitmap = Tracker.getImage(CurImage)
+        Node = Player.getElementByID("fingers")
+        Node.setBitmap(Bitmap)
+        Node.width=1280
+        Node.height=720
+        flipBitmap(Node)
 
 Player = avg.Player()
 Log = avg.Logger.get()
@@ -57,7 +79,7 @@ Log.setCategories(Log.APP |
 Player.loadFile("remote.avg")
 Player.setFramerate(60)
 Tracker = Player.addTracker()
-Tracker.setDebugImages(False, True)
+CurImage = None
 Host = os.getenv("AVG_REMOTE_HOST")
 Port = os.getenv("AVG_REMOTE_PORT")
 if Host == None or Port == None:
