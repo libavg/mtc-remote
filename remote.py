@@ -61,8 +61,8 @@ def onFrame():
         Bitmap = Tracker.getImage(CurImage)
         Node = Player.getElementByID("fingers")
         Node.setBitmap(Bitmap)
-        Node.width=1280
-        Node.height=720
+        Node.width=640
+        Node.height=480
         flipBitmap(Node)
 
 Player = avg.Player()
@@ -72,14 +72,16 @@ Player.setResolution(0, 640, 0, 0)
 Log.setCategories(Log.APP |
                   Log.WARNING | 
                   Log.PROFILE |
-                  Log.CONFIG
-#                  Log.EVENTS 
-#                  Log.EVENTS2
+                  Log.CONFIG |
+                  Log.EVENTS |
+                  Log.EVENTS2
                  )
 Player.loadFile("remote.avg")
 Player.setFramerate(60)
 Tracker = Player.addTracker()
 CurImage = None
+# CurImage = avg.IMG_CAMERA
+# Tracker.setDebugImages(True, False)
 Host = os.getenv("AVG_REMOTE_HOST")
 Port = os.getenv("AVG_REMOTE_PORT")
 if Host == None or Port == None:
