@@ -11,18 +11,26 @@ def onTouch(Event):
     global OSCController
     global HOST
     global PORT
-    if Event.source != avg.TRACK:
-        if Event.type == avg.CURSORDOWN:
-            Type = "down"
-        elif Event.type == avg.CURSORUP:
-            Type = "up"
-        elif Event.type == avg.CURSORMOTION:
-            Type = "motion"
-        else:
-            print Event.type
-        if OSCController:
-            OSCController.sendMsg('/touch/'+Type, int(Event.cursorid), 
-                    float(Event.x), float(Event.y))
+    if Event.type == avg.CURSORDOWN:
+        Type = "down"
+    elif Event.type == avg.CURSORUP:
+        Type = "up"
+    elif Event.type == avg.CURSORMOTION:
+        Type = "motion"
+    else:
+        print Event.type
+    if Event.source == avg.TOUCH:
+        Source = "/touch/"
+    elif Event.source == avg.TRACK:
+        Source = "/track/"
+    elif Event.source == avg.MOUSE:
+        Source = "/mouse/"
+    if OSCController:
+        OSCController.sendMsg(Source+Type, int(Event.cursorid), 
+                int(Event.x), int(Event.y), 
+                int(Event.area), int(Event.orientation), int(Event.eccentricity),
+                int(Event.majoraxis[0]), int(Event.majoraxis[1]),
+                int(Event.minoraxis[0]), int(Event.minoraxis[1]))
 
 def onKeyUp(Event):
     global Tracker
