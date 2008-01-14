@@ -19,18 +19,21 @@ def onTouch(Event):
         Type = "motion"
     else:
         print Event.type
-    if Event.source == avg.TOUCH:
-        Source = "/touch/"
-    elif Event.source == avg.TRACK:
-        Source = "/track/"
-    elif Event.source == avg.MOUSE:
-        Source = "/mouse/"
-    if OSCController:
-        OSCController.sendMsg(Source+Type, int(Event.cursorid), 
-                int(Event.x), int(Event.y), 
-                int(Event.area), int(Event.orientation), int(Event.eccentricity),
-                int(Event.majoraxis[0]), int(Event.majoraxis[1]),
-                int(Event.minoraxis[0]), int(Event.minoraxis[1]))
+    if Event.source == avg.TOUCH or Event.source == avg.TRACK:
+        if Event.source == avg.TOUCH:
+            Source = "/touch/"
+        elif Event.source == avg.TRACK:
+            Source = "/track/"
+        if OSCController:
+            OSCController.sendMsg(Source+Type, int(Event.cursorid), 
+                    int(Event.x), int(Event.y), 
+                    int(Event.area), int(Event.orientation), int(Event.eccentricity),
+                    int(Event.majoraxis[0]), int(Event.majoraxis[1]),
+                    int(Event.minoraxis[0]), int(Event.minoraxis[1]))
+    else:
+        if OSCController:
+            OSCController.sendMsg("/mouse/"+Type, int(Event.cursorid), 
+                    int(Event.x), int(Event.y))
 
 def onKeyUp(Event):
     global Tracker
@@ -56,6 +59,9 @@ def onKeyUp(Event):
     elif Event.keystring == "7":
         CurImage = None
         Tracker.setDebugImages(False, False)
+    elif Event.keystring == "h":
+        Tracker.resetHistory()
+        print "History reset"
 
 def flipBitmap(Node):
     Grid = Node.getOrigVertexCoords()
