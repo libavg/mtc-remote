@@ -17,7 +17,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# For questions regarding this module contact 
+# For questions regarding this module contact
 # Daniel Holth <dholth@stetson.edu> or visit
 # http://www.stetson.edu/~ProctoLogic/
 #
@@ -29,23 +29,15 @@
 #   Added a generic callback handler.
 #   - dwh
 
+import socket
 import struct
 import math
 import sys
 import string
-
-def hexDump(bytes):
-    """Useful utility; prints the string in hexadecimal"""
-    for i in range(len(bytes)):
-        sys.stdout.write("%2x " % (ord(bytes[i])))
-        if (i+1) % 8 == 0:
-            print repr(bytes[i-7:i+1])
-
-    if(len(bytes) % 8 != 0):
-        print string.rjust("", 11), repr(bytes[i-7:i+1])
+import pprint
 
 
-class OSCMessage:
+class Message:
     """Builds typetagged OSC messages."""
     def __init__(self):
         self.address  = ""
@@ -56,14 +48,14 @@ class OSCMessage:
         self.address = address
 
     def setMessage(self, message):
-	self.message = message
+        self.message = message
 
     def setTypetags(self, typetags):
-	self.typetags = typetags
+        self.typetags = typetags
 
     def clear(self):
-	self.address  = ""
-	self.clearData()
+        self.address  = ""
+        self.clearData()
 
     def clearData(self):
         self.typetags = ","
@@ -97,6 +89,109 @@ class OSCMessage:
     def __repr__(self):
         return self.getBinary()
 
+
+class Bundle:
+    def __init__(self):
+        self.bundle = Message()
+        self.bundle.setAddress("")
+        self.bundle.append("#bundle")
+        self.bundle.append(0)
+        self.bundle.append(0)
+
+    def append(self,message):
+        self.bundle.append(message.getBinary(),'b')
+
+    def getRawMessage(self):
+        return self.bundle.message
+
+    def __repr__(self):
+        return self.bundle.getBinary()
+
+
+class Client:
+    """This class acts as an interface for sending out OSC packets"""
+    
+    def __init__(self,address,port):
+        self.address = address
+        self.port = port
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        print "Instantiated with address: " + address + " port: " + str(port)
+
+    def sendMessage(self,message):
+        self.socket.sendto(message.getBinary(), (self.address, self.port))
+
+    def sendRawMessage(self,rawMessage):
+        self.socket.sendto(rawMessage, (self.address, self.port))
+
+
+class CallbackManager:
+    """This utility class maps OSC addresses to callables.
+
+    The CallbackManager calls its callbacks with a list
+    of decoded OSC arguments, including the address and
+    the typetags as the first two arguments."""
+
+    def __init__(self):
+        self.callbacks = {}
+        self.add(self.unbundler, "#bundle")
+
+    def handle(self, data, source = None):
+        """Given OSC data, tries to call the callback with the
+        right address."""
+        decoded = decodeOSC(data)
+        self.dispatch(decoded, source)
+
+    def dispatch(self, message, source = None):
+        """Sends decoded OSC data to an appropriate calback"""
+        try:
+            if type(message[0]) == str :
+                # got a single message
+                address = message[0]
+                self.callbacks[address](message, source)
+
+            elif type(message[0]) == list :
+                # smells like nested messages
+                for msg in message :
+                    self.dispatch(msg, source)
+
+        except KeyError, e:
+            # address not found
+            print 'address %s not found ' % address
+            pprint.pprint(message)
+        except IndexError, e:
+            print 'got malformed OSC message'
+            pass
+        except None, e:
+            print "Exception in", address, "callback :", e
+
+        return
+
+    def add(self, callback, name):
+        """Adds a callback to our set of callbacks,
+        or removes the callback with name if callback
+        is None."""
+        if callback == None:
+            del self.callbacks[name]
+        else:
+            self.callbacks[name] = callback
+
+    def unbundler(self, messages):
+        """Dispatch the messages in a decoded bundle."""
+        # first two elements are #bundle and the time tag, rest are messages.
+        for message in messages[2:]:
+            self.dispatch(message)
+
+
+def hexDump(bytes):
+    """Useful utility; prints the string in hexadecimal"""
+    for i in range(len(bytes)):
+        sys.stdout.write("%2x " % (ord(bytes[i])))
+        if (i+1) % 8 == 0:
+            print repr(bytes[i-7:i+1])
+
+    if(len(bytes) % 8 != 0):
+        print string.rjust("", 11), repr(bytes[i-len(bytes)%8:i+1])
+
 def readString(data):
     length   = string.find(data,"\0")
     nextData = int(math.ceil((length+1) / 4.0) * 4)
@@ -104,8 +199,8 @@ def readString(data):
 
 
 def readBlob(data):
-    length   = struct.unpack(">i", data[0:4])[0]    
-    nextData = int(math.ceil((length) / 4.0) * 4) + 4   
+    length   = struct.unpack(">i", data[0:4])[0]
+    nextData = int(math.ceil((length) / 4.0) * 4) + 4
     return (data[4:length+4], data[nextData:])
 
 
@@ -117,7 +212,7 @@ def readInt(data):
     else:
         integer = struct.unpack(">i", data[0:4])[0]
         rest    = data[4:]
-        
+
     return (integer, rest)
 
 
@@ -131,23 +226,17 @@ def readLong(data):
     return (big, rest)
 
 
-def readDouble(data):
-    """Tries to interpret the next 8 bytes of the data
-    as a 64-bit double float."""
-    floater = struct.unpack(">d", data[0:8])
-    big = float(floater[0])
-    rest = data[8:]
-    return (big, rest)
 
 def readFloat(data):
     if(len(data)<4):
         print "Error: too few bytes for float", data, len(data)
         rest = data
-        floater = 0
+        float = 0
     else:
-        floater = struct.unpack(">f", data[0:4])[0]
+        float = struct.unpack(">f", data[0:4])[0]
         rest  = data[4:]
-    return (floater, rest)
+
+    return (float, rest)
 
 
 def OSCBlob(next):
@@ -162,7 +251,7 @@ def OSCBlob(next):
     else:
         tag    = ''
         binary = ''
-    
+
     return (tag, binary)
 
 
@@ -170,8 +259,8 @@ def OSCArgument(next):
     """Convert some Python types to their
     OSC binary representations, returning a
     (typetag, data) tuple."""
-    
-    if type(next) == type(""):        
+
+    if type(next) == type(""):
         OSCstringLength = math.ceil((len(next)+1) / 4.0) * 4
         binary  = struct.pack(">%ds" % (OSCstringLength), next)
         tag = "s"
@@ -219,79 +308,32 @@ def decodeOSC(data):
 
     if address == "#bundle":
         time, rest = readLong(rest)
-        decoded.append(address)
-        decoded.append(time)
+#       decoded.append(address)
+#       decoded.append(time)
         while len(rest)>0:
             length, rest = readInt(rest)
             decoded.append(decodeOSC(rest[:length]))
             rest = rest[length:]
 
-    elif len(rest)>0:
+    elif len(rest) > 0:
         typetags, rest = readString(rest)
         decoded.append(address)
         decoded.append(typetags)
-        if(typetags[0] == ","):
+        if typetags[0] == ",":
             for tag in typetags[1:]:
-                value, rest = table[tag](rest)                
+                value, rest = table[tag](rest)
                 decoded.append(value)
         else:
             print "Oops, typetag lacks the magic ,"
 
-    # return only the data
-    return decoded[2:]
+    return decoded
 
-
-class CallbackManager:
-    """This utility class maps OSC addresses to callables.
-
-    The CallbackManager calls its callbacks with a list
-    of decoded OSC arguments, including the address and
-    the typetags as the first two arguments."""
-
-    def __init__(self):
-        self.callbacks = {}
-        self.add(self.unbundler, "#bundle")
-
-    def handle(self, data, source = None):
-        """Given OSC data, tries to call the callback with the
-        right address."""
-        decoded = decodeOSC(data)
-        self.dispatch(decoded)
-
-    def dispatch(self, message):
-        """Sends decoded OSC data to an appropriate calback"""
-        try:
-            address = message[0]
-            self.callbacks[address](message)
-        except KeyError, e:
-            # address not found
-            print 'foo'
-            pass
-        except None, e:
-            print "Exception in", address, "callback :", e
-        
-        return
-
-    def add(self, callback, name):
-        """Adds a callback to our set of callbacks,
-        or removes the callback with name if callback
-        is None."""
-        if callback == None:
-            del self.callbacks[name]
-        else:
-            self.callbacks[name] = callback
-
-    def unbundler(self, messages):
-        """Dispatch the messages in a decoded bundle."""
-        # first two elements are #bundle and the time tag, rest are messages.
-        for message in messages[2:]:
-            self.dispatch(message)
 
 
 if __name__ == "__main__":
     hexDump("Welcome to the OSC testing program.")
     print
-    message = OSCMessage()
+    message = Message()
     message.setAddress("/foo/play")
     message.append(44)
     message.append(11)
@@ -301,7 +343,7 @@ if __name__ == "__main__":
 
     print "Making and unmaking a message.."
 
-    strings = OSCMessage()
+    strings = Message()
     strings.append("Mary had a little lamb")
     strings.append("its fleece was white as snow")
     strings.append("and everywhere that Mary went,")
@@ -313,7 +355,7 @@ if __name__ == "__main__":
     raw  = strings.getBinary()
 
     hexDump(raw)
-    
+
     print "Retrieving arguments..."
     data = raw
     for i in range(6):
@@ -334,8 +376,8 @@ if __name__ == "__main__":
     print decodeOSC(message.getBinary())
 
     print "Testing Blob types."
-   
-    blob = OSCMessage() 
+
+    blob = Message()
     blob.append("","b")
     blob.append("b","b")
     blob.append("bl","b")
@@ -348,22 +390,22 @@ if __name__ == "__main__":
 
     print decodeOSC(blob.getBinary())
 
-    def printingCallback(stuff):
+    def printingCallback(*stuff):
         sys.stdout.write("Got: ")
         for i in stuff:
             sys.stdout.write(str(i) + " ")
         sys.stdout.write("\n")
 
     print "Testing the callback manager."
-    
+
     c = CallbackManager()
     c.add(printingCallback, "/print")
-    
+
     c.handle(message.getBinary())
     message.setAddress("/print")
     c.handle(message.getBinary())
-    
-    print1 = OSCMessage()
+
+    print1 = Message()
     print1.setAddress("/print")
     print1.append("Hey man, that's cool.")
     print1.append(42)
@@ -371,7 +413,7 @@ if __name__ == "__main__":
 
     c.handle(print1.getBinary())
 
-    bundle = OSCMessage()
+    bundle = Message()
     bundle.setAddress("")
     bundle.append("#bundle")
     bundle.append(0)
@@ -381,6 +423,7 @@ if __name__ == "__main__":
 
     bundlebinary = bundle.message
 
-#    print "sending a bundle to the callback manager"
-# This breaks I dunno why.  Good thing I don't use it JS.
-#    c.handle(bundlebinary)
+    print "sending a bundle to the callback manager"
+    c.handle(bundlebinary)
+
+    
