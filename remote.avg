@@ -3,8 +3,8 @@
         oncursordown="onTouch" oncursorup="onTouch" oncursormove="onTouch">
     <image id="distorted" x="0" y="0" width="960" height="720" sensitive="false"/>
     <image id="fingers" x="0" y="0" width="960" height="720" sensitive="false"/>
-    <div id="gui" x="30" y="520">
-        <image id="shadow" x="0" y="11" width="500" height="180" 
+    <div id="gui" x="30" y="490">
+        <image id="shadow" x="0" y="13" width="500" height="215" 
                 href="images/black.png" opacity="0.6"/>
         <words x="2" y="13" text="camera" size="16" font="Eurostile" color="00FF00"/>
         <image x="2" y="32" href="images/CamImgBorder.png"/>
@@ -20,9 +20,19 @@
 
         <words id="param0" x="2" y="162" size="13" font="Eurostile"/> 
         <words id="param1" x="2" y="178" size="13" font="Eurostile"/> 
-        <words id="param2" x="168" y="162" size="13" font="Eurostile"/> 
-        <words id="param3" x="168" y="178" size="13" font="Eurostile"/> 
-        <words id="param4" x="334" y="162" size="13" font="Eurostile"/> 
-        <words id="param5" x="334" y="178" size="13" font="Eurostile"/> 
+        <words id="param2" x="2" y="194" size="13" font="Eurostile"/> 
+        <words id="param3" x="2" y="210" size="13" font="Eurostile"/> 
+        <words id="param4" x="168" y="162" size="13" font="Eurostile"/> 
+        <words id="param5" x="168" y="178" size="13" font="Eurostile"/> 
+        <words id="param6" x="168" y="194" size="13" font="Eurostile"/> 
+        <words id="param7" x="168" y="210" size="13" font="Eurostile"/> 
+        <words id="param8" x="304" y="162" size="13" font="Eurostile"/> 
+        <words id="param9" x="428" y="162" size="13" font="Eurostile"/> 
+        <words id="param10" x="304" y="178" size="13" font="Eurostile"/> 
+        <words id="param11" x="428" y="178" size="13" font="Eurostile"/> 
+        <words id="param12" x="304" y="194" size="13" font="Eurostile"/> 
+        <words id="param13" x="428" y="194" size="13" font="Eurostile"/> 
+        <words id="param14" x="304" y="210" size="13" font="Eurostile"/> 
+        <words id="param15" x="428" y="210" size="13" font="Eurostile"/> 
     </div>
 </avg>

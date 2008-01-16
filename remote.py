@@ -11,9 +11,21 @@ INPUT=0
 OUTPUT=1
 
 paramList = [
-    {'Name':"Track Threshold", 
+    # Tracker
+    {'Name':"Threshold", 
      'path':"/trackerconfig/tracker/track/threshold/@value", 
      'min':1, 'max':255, 'increment':1, 'precision':0},
+    {'Name':"Min Area", 
+     'path':"/trackerconfig/tracker/track/areabounds/@min", 
+     'min':1, 'max':1000000, 'increment':3, 'precision':0},
+    {'Name':"Max Area", 
+     'path':"/trackerconfig/tracker/track/areabounds/@max", 
+     'min':20, 'max':1000000, 'increment':10, 'precision':0},
+    {'Name':"Contour Vertexes", 
+     'path':"/trackerconfig/tracker/contourvertexes/@value", 
+     'min':0, 'max':1000, 'increment':1, 'precision':0},
+
+    # Camera
     {'Name':"Brightness", 
      'path':"/trackerconfig/camera/brightness/@value", 
      'min':1, 'max':255, 'increment':1, 'precision':0},
@@ -26,6 +38,32 @@ paramList = [
     {'Name':"Gain", 
      'path':"/trackerconfig/camera/gain/@value", 
      'min':16, 'max':64, 'increment':1, 'precision':0},
+
+    # Transform
+    {'Name':"Displacement x", 
+     'path':"/trackerconfig/transform/cameradisplacement/@x", 
+     'min':-320, 'max':320, 'increment':1, 'precision':0},
+    {'Name':"y", 
+     'path':"/trackerconfig/transform/cameradisplacement/@y", 
+     'min':-240, 'max':240, 'increment':1, 'precision':0},
+    {'Name':"Scale x", 
+     'path':"/trackerconfig/transform/camerascale/@x", 
+     'min':-3, 'max':3, 'increment':0.01, 'precision':2},
+    {'Name':"y", 
+     'path':"/trackerconfig/transform/camerascale/@y", 
+     'min':-3, 'max':3, 'increment':0.01, 'precision':2},
+    {'Name':"Distortion p2", 
+     'path':"/trackerconfig/transform/distortionparams/@p2", 
+     'min':-3, 'max':3, 'increment':0.01, 'precision':2},
+    {'Name':"p3", 
+     'path':"/trackerconfig/transform/distortionparams/@p3", 
+     'min':-3, 'max':3, 'increment':0.01, 'precision':2},
+    {'Name':"Trapezoid", 
+     'path':"/trackerconfig/transform/trapezoid/@value", 
+     'min':-3, 'max':3, 'increment':0.01, 'precision':2},
+    {'Name':"Angle", 
+     'path':"/trackerconfig/transform/angle/@value", 
+     'min':-3.15, 'max':3.15, 'increment':0.01, 'precision':2},
 ]
 
 sendContour=1
@@ -107,7 +145,7 @@ def changeParam(Change):
     global curParam
     global paramList
     param = paramList[curParam]
-    Val = int(Tracker.getParam(param['path']))
+    Val = float(Tracker.getParam(param['path']))
     Val += Change*param['increment']
     if Val < param['min']:
         Val = param['min']
