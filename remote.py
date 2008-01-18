@@ -60,7 +60,7 @@ paramList = [
      'min':-3, 'max':3, 'increment':0.01, 'precision':2},
     {'Name':"Trapezoid", 
      'path':"/trackerconfig/transform/trapezoid/@value", 
-     'min':-3, 'max':3, 'increment':0.01, 'precision':2},
+     'min':-3, 'max':3, 'increment':0.00001, 'precision':5},
     {'Name':"Angle", 
      'path':"/trackerconfig/transform/angle/@value", 
      'min':-3.15, 'max':3.15, 'increment':0.01, 'precision':2},
