@@ -241,15 +241,6 @@ def onFrame():
 #        print "Got message :",MidiData[0][0][0]," ",MidiData[0][0][1]," ",MidiData[0][0][2], MidiData[0][0][3]
 #        print "VALUE=",MidiData[0][0][2]
 
-def testParam():
-    global value
-    Tracker.setParam("/trackerconfig/camera/brightness/@value",str(value))
-    value=value+1
-
-    if (value > 500): value = 0
-#    Tracker.saveConfig()
-    print Tracker.getParam("/trackerconfig/camera/brightness/@value")
-
 value = 0
 Player = avg.Player()
 Log = avg.Logger.get()
@@ -272,6 +263,15 @@ showImage = True
 Tracker.setDebugImages(True, True)
 
 OSCClient = OSC.Client("194.95.203.37", 12000)
+
+Bitmap = Tracker.getImage(avg.IMG_CAMERA)
+
+initMsg = OSC.Message()
+initMsg.setAddress('/stage/init')
+initMsg.append(Bitmap.getSize()[0])
+initMsg.append(Bitmap.getSize()[1])
+OSCClient.sendMessage(initMsg);
+
 Player.setOnFrameHandler(onFrame)
 displayParams()
 
