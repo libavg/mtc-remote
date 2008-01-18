@@ -102,8 +102,8 @@ def onTouch(Event):
             posMsg = OSC.Message()
             posMsg.setAddress('/blob/'+Type)
             posMsg.append(Event.cursorid)
-            posMsg.append(Event.x)
-            posMsg.append(Event.y)
+            posMsg.append(int(Event.center[0]))
+            posMsg.append(int(Event.center[1]))
             
             if sendContour and Type != 'destroyed':
                 bundle = OSC.Bundle()
@@ -154,7 +154,22 @@ def changeParam(Change):
     if Val > param['max']:
         Val = param['max']
     Tracker.setParam(param['path'], str(Val))
-
+    
+def displayParams():
+    global paramList
+    global curParam
+    i = 0
+    for Param in paramList:
+        Node = Player.getElementByID("param"+str(i))
+        Path = Param['path']
+        Val = float(Tracker.getParam(Path))
+        Node.text = Param['Name']+": "+('%(val).'+str(Param['precision'])+'f') % {'val': Val}
+        if curParam == i:
+            Node.color = "FFFFFF"
+        else:
+            Node.color = "A0A0FF"
+        i += 1 
+            
 def onKeyUp(Event):
     global Tracker
     global showImage
@@ -194,6 +209,7 @@ def onKeyUp(Event):
         Tracker.getImage(avg.IMG_HIGHPASS).save("img"+str(saveIndex)+"_highpass.png")
         Tracker.getImage(avg.IMG_FINGERS).save("img"+str(saveIndex)+"_fingers.png")
         print ("Images saved.")
+    displayParams()
 
 def flipBitmap(Node):
     Grid = Node.getOrigVertexCoords()
@@ -207,20 +223,6 @@ def onFrame():
         Node.setBitmap(Bitmap)
         Node.width=w
         Node.height=h
-    def displayParams():
-        global paramList
-        global curParam
-        i = 0
-        for Param in paramList:
-            Node = Player.getElementByID("param"+str(i))
-            Path = Param['path']
-            Val = float(Tracker.getParam(Path))
-            Node.text = Param['Name']+": "+('%(val).'+str(Param['precision'])+'f') % {'val': Val}
-            if curParam == i:
-                Node.color = "FFFFFF"
-            else:
-                Node.color = "A0A0FF"
-            i += 1 
     global Tracker
     global showImage
     global MidiIn
@@ -230,8 +232,7 @@ def onFrame():
         showTrackerImage(avg.IMG_CAMERA, "camera", 160, 120)
         showTrackerImage(avg.IMG_NOHISTORY, "nohistory", 160, 120)
         showTrackerImage(avg.IMG_HISTOGRAM, "histogram", 160, 120)
-    displayParams()
-
+ 
 #        flipBitmap(Node)
 
 #    while MidiIn.Poll():
@@ -263,15 +264,16 @@ Log.setCategories(Log.APP |
 #                  Log.PROFILE_LATEFRAMES
                  )
 Player.loadFile("remote.avg")
-Player.setFramerate(20)
+Player.setFramerate(200)
 Tracker = Player.addTracker()
 Tracker.setDebugImages(True, True)
 
 showImage = True
 Tracker.setDebugImages(True, True)
 
-OSCClient = OSC.Client("194.95.203.162", 12000)
+OSCClient = OSC.Client("194.95.203.37", 12000)
 Player.setOnFrameHandler(onFrame)
+displayParams()
 
 #PrintDevices(INPUT)
 #MidiIn = pypm.Input(5)
