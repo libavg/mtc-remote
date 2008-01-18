@@ -28,16 +28,16 @@ paramList = [
     # Camera
     {'Name':"Brightness", 
      'path':"/trackerconfig/camera/brightness/@value", 
-     'min':1, 'max':255, 'increment':1, 'precision':0},
+     'min':128, 'max':383, 'increment':1, 'precision':0},
     {'Name':"Exposure", 
      'path':"/trackerconfig/camera/exposure/@value", 
-     'min':7, 'max':62, 'increment':1, 'precision':0},
+     'min':0, 'max':511, 'increment':1, 'precision':0},
     {'Name':"Shutter", 
      'path':"/trackerconfig/camera/shutter/@value", 
-     'min':1, 'max':533, 'increment':1, 'precision':0},
+     'min':0, 'max':7, 'increment':1, 'precision':0},
     {'Name':"Gain", 
      'path':"/trackerconfig/camera/gain/@value", 
-     'min':16, 'max':64, 'increment':1, 'precision':0},
+     'min':0, 'max':255, 'increment':1, 'precision':0},
 
     # Transform
     {'Name':"Displacement x", 
@@ -145,7 +145,10 @@ def changeParam(Change):
     global curParam
     global paramList
     param = paramList[curParam]
-    Val = float(Tracker.getParam(param['path']))
+    if param['increment'] >= 1:
+        Val = int(Tracker.getParam(param['path']))
+    else:
+        Val = float(Tracker.getParam(param['path']))
     Val += Change*param['increment']
     if Val < param['min']:
         Val = param['min']
