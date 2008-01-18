@@ -87,59 +87,58 @@ def onTouch(Event):
     global OSCClient
     global sendContour
 
-    if Event.type == avg.CURSORDOWN:
-        Type = "created"
-    elif Event.type == avg.CURSORUP:
-        Type = "destroyed"
-    elif Event.type == avg.CURSORMOTION:
-        Type = "motion"
-    else:
-        print Event.type
-
-    if Event.source == avg.TRACK:
-
-        posMsg = OSC.Message()
-        posMsg.setAddress('/blob/'+Type)
-        posMsg.append(Event.cursorid)
-        posMsg.append(Event.x)
-        posMsg.append(Event.y)
-        
-        if sendContour and Type != 'destroyed':
-            bundle = OSC.Bundle()
-            bundle.append(posMsg)
-            
-            contour = Event.getContour()
-
-            # This triggers contour reset on server side
-            rstMsg = OSC.Message()
-            rstMsg.setAddress('/blob/rstc')
-            rstMsg.append(Event.cursorid)
-            rstMsg.append(len(contour))
-            
-            bundle.append(rstMsg)
-          
-            i = 0
-            contMsg = OSC.Message()
-            for point in contour:
-                contMsg.clear()
-                contMsg.setAddress('/blob/cv')
-                contMsg.append(Event.cursorid)
-                contMsg.append(point[0])
-                contMsg.append(point[1])
-                contMsg.append(i)
-
-                bundle.append(contMsg)
-                i = i+1
-		        		        
-            OSCClient.sendRawMessage(bundle.getRawMessage())
-
+    try:
+        if Event.type == avg.CURSORDOWN:
+            Type = "created"
+        elif Event.type == avg.CURSORUP:
+            Type = "destroyed"
+        elif Event.type == avg.CURSORMOTION:
+            Type = "motion"
         else:
-            OSCClient.sendMessage(posMsg)
+            print Event.type
 
+        if Event.source == avg.TRACK:
+
+            posMsg = OSC.Message()
+            posMsg.setAddress('/blob/'+Type)
+            posMsg.append(Event.cursorid)
+            posMsg.append(Event.x)
+            posMsg.append(Event.y)
+            
+            if sendContour and Type != 'destroyed':
+                bundle = OSC.Bundle()
+                bundle.append(posMsg)
+                
+                contour = Event.getContour()
+
+                # This triggers contour reset on server side
+                rstMsg = OSC.Message()
+                rstMsg.setAddress('/blob/rstc')
+                rstMsg.append(Event.cursorid)
+                rstMsg.append(len(contour))
+                
+                bundle.append(rstMsg)
+              
+                i = 0
+                contMsg = OSC.Message()
+                for point in contour:
+                    contMsg.clear()
+                    contMsg.setAddress('/blob/cv')
+                    contMsg.append(Event.cursorid)
+                    contMsg.append(point[0])
+                    contMsg.append(point[1])
+                    contMsg.append(i)
+
+                    bundle.append(contMsg)
+                    i = i+1
+                                    
+                OSCClient.sendRawMessage(bundle.getRawMessage())
+
+            else:
+                OSCClient.sendMessage(posMsg)
+    except socket.error, e:
+        print e
 #        print "EVENT="+Type+" ID="+str(Event.cursorid)+" POS="+str(Event.x)+","+str(Event.y)+" AREA="+str(Event.area)
-
-    elif Event.source == avg.MOUSE:
-        Source = "/mouse/"
 
 def changeParam(Change):
     global curParam
