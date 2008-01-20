@@ -178,6 +178,7 @@ def onKeyUp(Event):
     global paramList
     if Event.keystring == "1":
         showImage = not(showImage)
+        Tracker.setDebugImages(showImage, showImage)
     elif Event.keystring == "h":
         Tracker.resetHistory()
         print "History reset"
@@ -255,7 +256,7 @@ Log.setCategories(Log.APP |
 #                  Log.PROFILE_LATEFRAMES
                  )
 Player.loadFile("remote.avg")
-Player.setFramerate(200)
+Player.setFramerate(30)
 Tracker = Player.addTracker()
 Tracker.setDebugImages(True, True)
 
