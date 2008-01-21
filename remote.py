@@ -233,7 +233,9 @@ def onFrame():
         showTrackerImage(avg.IMG_CAMERA, "camera", 160, 120)
         showTrackerImage(avg.IMG_NOHISTORY, "nohistory", 160, 120)
         showTrackerImage(avg.IMG_HISTOGRAM, "histogram", 160, 120)
- 
+    fps = Player.getEffectiveFramerate()
+    Player.getElementByID("fps").text = '%(val).2f' % {'val': fps} 
+
 #        flipBitmap(Node)
 
 #    while MidiIn.Poll():
@@ -256,7 +258,7 @@ Log.setCategories(Log.APP |
 #                  Log.PROFILE_LATEFRAMES
                  )
 Player.loadFile("remote.avg")
-Player.setFramerate(200)
+Player.setFramerate(60)
 Tracker = Player.addTracker()
 Tracker.setDebugImages(True, True)
 
