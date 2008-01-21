@@ -54,10 +54,10 @@ paramList = [
      'min':-3, 'max':3, 'increment':0.01, 'precision':2},
     {'Name':"Distortion p2", 
      'path':"/trackerconfig/transform/distortionparams/@p2", 
-     'min':-3, 'max':3, 'increment':0.01, 'precision':2},
+     'min':-3, 'max':3, 'increment':0.0000001, 'precision':7},
     {'Name':"p3", 
      'path':"/trackerconfig/transform/distortionparams/@p3", 
-     'min':-3, 'max':3, 'increment':0.01, 'precision':2},
+     'min':-3, 'max':3, 'increment':0.0000001, 'precision':7},
     {'Name':"Trapezoid", 
      'path':"/trackerconfig/transform/trapezoid/@value", 
      'min':-3, 'max':3, 'increment':0.00001, 'precision':5},
@@ -256,7 +256,7 @@ Log.setCategories(Log.APP |
 #                  Log.PROFILE_LATEFRAMES
                  )
 Player.loadFile("remote.avg")
-Player.setFramerate(30)
+Player.setFramerate(200)
 Tracker = Player.addTracker()
 Tracker.setDebugImages(True, True)
 
