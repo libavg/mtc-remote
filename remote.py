@@ -21,8 +21,8 @@ paramList = [
     {'Name':"Max Area", 
      'path':"/trackerconfig/tracker/track/areabounds/@max", 
      'min':20, 'max':1000000, 'increment':10, 'precision':0},
-    {'Name':"Contour Vertexes", 
-     'path':"/trackerconfig/tracker/contourvertexes/@value", 
+    {'Name':"Contour Precision", 
+     'path':"/trackerconfig/tracker/contourprecision/@value", 
      'min':0, 'max':1000, 'increment':1, 'precision':0},
 
     # Camera
