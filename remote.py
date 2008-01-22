@@ -89,23 +89,23 @@ def onTouch(Event):
 
     try:
         if Event.type == avg.CURSORDOWN:
-            Type = "created"
+            Type = "c"
         elif Event.type == avg.CURSORUP:
-            Type = "destroyed"
+            Type = "d"
         elif Event.type == avg.CURSORMOTION:
-            Type = "motion"
+            Type = "m"
         else:
             print Event.type
 
         if Event.source == avg.TRACK:
 
             posMsg = OSC.Message()
-            posMsg.setAddress('/blob/'+Type)
+            posMsg.setAddress('/b/'+Type)
             posMsg.append(Event.cursorid)
             posMsg.append(int(Event.center[0]))
             posMsg.append(int(Event.center[1]))
             
-            if sendContour and Type != 'destroyed':
+            if sendContour and Type != 'd':
                 bundle = OSC.Bundle()
                 bundle.append(posMsg)
                 
@@ -113,7 +113,7 @@ def onTouch(Event):
 
                 # This triggers contour reset on server side
                 rstMsg = OSC.Message()
-                rstMsg.setAddress('/blob/rstc')
+                rstMsg.setAddress('/b/r')
                 rstMsg.append(Event.cursorid)
                 rstMsg.append(len(contour))
                 
@@ -123,7 +123,7 @@ def onTouch(Event):
                 contMsg = OSC.Message()
                 for point in contour:
                     contMsg.clear()
-                    contMsg.setAddress('/blob/cv')
+                    contMsg.setAddress('/b/v')
                     contMsg.append(Event.cursorid)
                     contMsg.append(point[0])
                     contMsg.append(point[1])
@@ -247,7 +247,7 @@ def onFrame():
 value = 0
 Player = avg.Player()
 Log = avg.Logger.get()
-#Player.setResolution(0, 960, 0, 0) 
+Player.setResolution(0, 800, 0, 0) 
 #Player.setResolution(1, 0, 0, 0) 
 Log.setCategories(Log.APP |
                   Log.WARNING | 
@@ -265,7 +265,8 @@ Tracker.setDebugImages(True, True)
 showImage = True
 Tracker.setDebugImages(True, True)
 
-OSCClient = OSC.Client("194.95.203.37", 12000)
+#OSCClient = OSC.Client("194.95.203.37", 12000)
+OSCClient = OSC.Client("127.0.0.1", 12000)
 
 Bitmap = Tracker.getImage(avg.IMG_CAMERA)
 
