@@ -48,10 +48,10 @@ paramList = [
      'min':-5000, 'max':0, 'increment':1, 'precision':0},
     {'Name':"Scale x", 
      'path':"/trackerconfig/transform/displayscale/@x", 
-     'min':-3, 'max':3, 'increment':0.01, 'precision':2},
+     'min':-3, 'max':8, 'increment':0.01, 'precision':2},
     {'Name':"y", 
      'path':"/trackerconfig/transform/displayscale/@y", 
-     'min':-3, 'max':3, 'increment':0.01, 'precision':2},
+     'min':-3, 'max':8, 'increment':0.01, 'precision':2},
     {'Name':"Distortion p2", 
      'path':"/trackerconfig/transform/distortionparams/@p2", 
      'min':-3, 'max':3, 'increment':0.0000001, 'precision':7},
@@ -268,12 +268,14 @@ Tracker.setDebugImages(True, True)
 #OSCClient = OSC.Client("194.95.203.37", 12000)
 OSCClient = OSC.Client("127.0.0.1", 12000)
 
-Bitmap = Tracker.getImage(avg.IMG_CAMERA)
+Bitmap = Tracker.getImage(avg.IMG_DISTORTED)
 
 initMsg = OSC.Message()
 initMsg.setAddress('/stage/init')
-initMsg.append(Bitmap.getSize()[0])
-initMsg.append(Bitmap.getSize()[1])
+initMsg.append(320)
+initMsg.append(165)
+#initMsg.append(Bitmap.getSize()[0])
+#initMsg.append(Bitmap.getSize()[1])
 OSCClient.sendMessage(initMsg);
 
 Player.setOnFrameHandler(onFrame)
