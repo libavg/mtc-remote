@@ -115,13 +115,20 @@ class Client:
         self.address = address
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        print "Instantiated with address: " + address + " port: " + str(port)
+	rcvb = self.socket.getsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF)
+	sndb = self.socket.getsockopt(socket.SOL_SOCKET,socket.SO_SNDBUF)
+
+        print "OSC Client Instantiated with address: " + address + " port: " + str(port) + " rcv/snd buffers: " + str(rcvb) + "/" + str(sndb)
 
     def sendMessage(self,message):
-        self.socket.sendto(message.getBinary(), (self.address, self.port))
+        self.sendRawMessage(message.getBinary())
 
     def sendRawMessage(self,rawMessage):
         self.socket.sendto(rawMessage, (self.address, self.port))
+
+    def setBufSize(self,size):
+	self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_SNDBUF,size)
+	self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,size)
 
 
 class CallbackManager:

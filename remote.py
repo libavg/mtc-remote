@@ -267,6 +267,7 @@ Tracker.setDebugImages(True, True)
 
 #OSCClient = OSC.Client("194.95.203.37", 12000)
 OSCClient = OSC.Client("127.0.0.1", 12000)
+OSCClient.setBufSize(65535)
 
 Bitmap = Tracker.getImage(avg.IMG_DISTORTED)
 
