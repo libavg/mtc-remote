@@ -10,7 +10,46 @@ import socket
 INPUT=0
 OUTPUT=1
 
-paramList = [
+CAMERA_TYPE="FireFly"
+#CAMERA_TYPE="Fire-i"
+
+if CAMERA_TYPE == "Fire-i":
+    paramList = [
+        # Camera
+        {'Name':"Brightness", 
+         'path':"/trackerconfig/camera/brightness/@value", 
+         'min':128, 'max':383, 'increment':1, 'precision':0},
+        {'Name':"Exposure", 
+         'path':"/trackerconfig/camera/exposure/@value", 
+         'min':0, 'max':511, 'increment':1, 'precision':0},
+        {'Name':"Shutter", 
+         'path':"/trackerconfig/camera/shutter/@value", 
+         'min':0, 'max':7, 'increment':1, 'precision':0},
+        {'Name':"Gain", 
+         'path':"/trackerconfig/camera/gain/@value", 
+         'min':0, 'max':255, 'increment':1, 'precision':0}
+    ]
+elif CAMERA_TYPE == "FireFly":
+    paramList = [
+        # Camera
+        {'Name':"Brightness", 
+         'path':"/trackerconfig/camera/brightness/@value", 
+         'min':1, 'max':255, 'increment':1, 'precision':0},
+        {'Name':"Exposure", 
+         'path':"/trackerconfig/camera/exposure/@value", 
+         'min':7, 'max':62, 'increment':1, 'precision':0},
+        {'Name':"Shutter", 
+         'path':"/trackerconfig/camera/shutter/@value", 
+         'min':1, 'max':533, 'increment':1, 'precision':0},
+        {'Name':"Gain", 
+         'path':"/trackerconfig/camera/gain/@value", 
+         'min':16, 'max':64, 'increment':1, 'precision':0}
+    ]
+else:
+    print("Unknown CAMERA_TYPE")
+    sys.exit()
+
+paramList.extend([
     # Tracker
     {'Name':"Threshold", 
      'path':"/trackerconfig/tracker/track/threshold/@value", 
@@ -24,20 +63,6 @@ paramList = [
     {'Name':"Contour Precision", 
      'path':"/trackerconfig/tracker/contourprecision/@value", 
      'min':0, 'max':1000, 'increment':1, 'precision':0},
-
-    # Camera
-    {'Name':"Brightness", 
-     'path':"/trackerconfig/camera/brightness/@value", 
-     'min':128, 'max':383, 'increment':1, 'precision':0},
-    {'Name':"Exposure", 
-     'path':"/trackerconfig/camera/exposure/@value", 
-     'min':0, 'max':511, 'increment':1, 'precision':0},
-    {'Name':"Shutter", 
-     'path':"/trackerconfig/camera/shutter/@value", 
-     'min':0, 'max':7, 'increment':1, 'precision':0},
-    {'Name':"Gain", 
-     'path':"/trackerconfig/camera/gain/@value", 
-     'min':0, 'max':255, 'increment':1, 'precision':0},
 
     # Transform
     {'Name':"Displacement x", 
@@ -64,7 +89,7 @@ paramList = [
     {'Name':"Angle", 
      'path':"/trackerconfig/transform/angle/@value", 
      'min':-3.15, 'max':3.15, 'increment':0.01, 'precision':2},
-]
+])
 
 sendContour=1
 curParam=0
@@ -169,7 +194,9 @@ def displayParams():
         else:
             Node.color = "A0A0FF"
         i += 1 
-            
+
+saveIndex=0
+
 def onKeyUp(Event):
     global Tracker
     global showImage
@@ -209,6 +236,7 @@ def onKeyUp(Event):
         Tracker.getImage(avg.IMG_NOHISTORY).save("img"+str(saveIndex)+"_nohistory.png")
         Tracker.getImage(avg.IMG_HIGHPASS).save("img"+str(saveIndex)+"_highpass.png")
         Tracker.getImage(avg.IMG_FINGERS).save("img"+str(saveIndex)+"_fingers.png")
+        Tracker.getImage(avg.IMG_HISTOGRAM).save("img"+str(saveIndex)+"_histogram.png")
         print ("Images saved.")
     displayParams()
 
@@ -218,12 +246,13 @@ def flipBitmap(Node):
     Node.setWarpedVertexCoords(Grid)
 
 def onFrame():
-    def showTrackerImage(TrackerImageID, NodeID, w, h):
+    def showTrackerImage(TrackerImageID, NodeID, w=None, h=None):
         Bitmap = Tracker.getImage(TrackerImageID)
         Node = Player.getElementByID(NodeID)
         Node.setBitmap(Bitmap)
-        Node.width=w
-        Node.height=h
+        if w != None:
+            Node.width=w
+            Node.height=h
     global Tracker
     global showImage
     global MidiIn
@@ -247,7 +276,7 @@ def onFrame():
 value = 0
 Player = avg.Player()
 Log = avg.Logger.get()
-Player.setResolution(0, 800, 0, 0) 
+Player.setResolution(0, 960, 0, 0) 
 #Player.setResolution(1, 0, 0, 0) 
 Log.setCategories(Log.APP |
                   Log.WARNING | 
@@ -263,7 +292,6 @@ Tracker = Player.addTracker()
 Tracker.setDebugImages(True, True)
 
 showImage = True
-Tracker.setDebugImages(True, True)
 
 #OSCClient = OSC.Client("194.95.203.37", 12000)
 OSCClient = OSC.Client("127.0.0.1", 12000)
