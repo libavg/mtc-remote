@@ -247,15 +247,14 @@ def flipBitmap(Node):
 
 def onFrame():
     def showTrackerImage(TrackerImageID, NodeID, w=None, h=None):
+        global Tracker
         Bitmap = Tracker.getImage(TrackerImageID)
         Node = Player.getElementByID(NodeID)
         Node.setBitmap(Bitmap)
         if w != None:
             Node.width=w
             Node.height=h
-    global Tracker
     global showImage
-    global MidiIn
     if showImage:
         showTrackerImage(avg.IMG_DISTORTED, "distorted", 960, 720)
         showTrackerImage(avg.IMG_FINGERS, "fingers", 960, 720)
