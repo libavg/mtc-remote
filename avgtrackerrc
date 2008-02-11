@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<trackerconfig>
+ <camera>
+  <source value="fw"/>
+  <format value="MONO8"/>
+  <size x="640" y="480"/>
+  <fps value="60"/>
+  <brightness value="1"/>
+  <exposure value="7"/>
+  <gamma value="0"/>
+  <gain value="16"/>
+  <shutter value="163"/>
+ </camera>
+ <tracker>
+  <mask value="images/cameramask.png"/>
+  <prescale value="1"/>
+  <historyupdateinterval value="25"/>
+  <brighterregions value="true"/>
+  <eventonmove value="false"/>
+  <contourprecision value="3"/>
+  <track>
+   <threshold value="11"/>
+   <similarity value="10"/>
+   <areabounds min="1000" max="1000000"/>
+   <eccentricitybounds min="1" max="80"/>
+  </track>
+ </tracker>
+ <transform>
+  <distortionparams p2="0.0" p3="0.0"/>
+  <trapezoid value="0.000"/>
+  <angle value="0"/>
+  <displaydisplacement x="0" y="0"/>
+  <displayscale x="1.5" y="1.5"/>
+ </transform>
+</trackerconfig>
