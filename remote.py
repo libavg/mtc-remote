@@ -227,7 +227,7 @@ def onKeyUp(Event):
         Tracker.resetHistory()
         print "History reset"
     elif Event.keystring == "s":
-        Tracker.saveConfig()
+        Tracker.saveConfig('avgtrackerrc')
         print ("Tracker configuration saved.")
     elif Event.keystring == "w":
         saveIndex += 1
