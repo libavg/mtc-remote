@@ -17,32 +17,32 @@ if CAMERA_TYPE == "Fire-i":
     paramList = [
         # Camera
         {'Name':"Brightness", 
-         'path':"/trackerconfig/camera/brightness/@value", 
+         'path':"/camera/brightness/@value", 
          'min':128, 'max':383, 'increment':1, 'precision':0},
         {'Name':"Exposure", 
-         'path':"/trackerconfig/camera/exposure/@value", 
+         'path':"/camera/exposure/@value", 
          'min':0, 'max':511, 'increment':1, 'precision':0},
         {'Name':"Shutter", 
-         'path':"/trackerconfig/camera/shutter/@value", 
+         'path':"/camera/shutter/@value", 
          'min':0, 'max':7, 'increment':1, 'precision':0},
         {'Name':"Gain", 
-         'path':"/trackerconfig/camera/gain/@value", 
+         'path':"/camera/gain/@value", 
          'min':0, 'max':255, 'increment':1, 'precision':0}
     ]
 elif CAMERA_TYPE == "FireFly":
     paramList = [
         # Camera
         {'Name':"Brightness", 
-         'path':"/trackerconfig/camera/brightness/@value", 
+         'path':"/camera/brightness/@value", 
          'min':1, 'max':255, 'increment':1, 'precision':0},
         {'Name':"Exposure", 
-         'path':"/trackerconfig/camera/exposure/@value", 
+         'path':"/camera/exposure/@value", 
          'min':7, 'max':62, 'increment':1, 'precision':0},
         {'Name':"Shutter", 
-         'path':"/trackerconfig/camera/shutter/@value", 
+         'path':"/camera/shutter/@value", 
          'min':1, 'max':533, 'increment':1, 'precision':0},
         {'Name':"Gain", 
-         'path':"/trackerconfig/camera/gain/@value", 
+         'path':"/camera/gain/@value", 
          'min':16, 'max':64, 'increment':1, 'precision':0}
     ]
 else:
@@ -52,42 +52,42 @@ else:
 paramList.extend([
     # Tracker
     {'Name':"Threshold", 
-     'path':"/trackerconfig/tracker/track/threshold/@value", 
+     'path':"/tracker/track/threshold/@value", 
      'min':1, 'max':255, 'increment':1, 'precision':0},
     {'Name':"Min Area", 
-     'path':"/trackerconfig/tracker/track/areabounds/@min", 
+     'path':"/tracker/track/areabounds/@min", 
      'min':1, 'max':1000000, 'increment':3, 'precision':0},
     {'Name':"Max Area", 
-     'path':"/trackerconfig/tracker/track/areabounds/@max", 
+     'path':"/tracker/track/areabounds/@max", 
      'min':20, 'max':1000000, 'increment':10, 'precision':0},
     {'Name':"Contour Precision", 
-     'path':"/trackerconfig/tracker/contourprecision/@value", 
+     'path':"/tracker/contourprecision/@value", 
      'min':0, 'max':1000, 'increment':1, 'precision':0},
 
     # Transform
     {'Name':"Displacement x", 
-     'path':"/trackerconfig/transform/displaydisplacement/@x", 
+     'path':"/transform/displaydisplacement/@x", 
      'min':-5000, 'max':0, 'increment':1, 'precision':0},
     {'Name':"y", 
-     'path':"/trackerconfig/transform/displaydisplacement/@y", 
+     'path':"/transform/displaydisplacement/@y", 
      'min':-5000, 'max':0, 'increment':1, 'precision':0},
     {'Name':"Scale x", 
-     'path':"/trackerconfig/transform/displayscale/@x", 
+     'path':"/transform/displayscale/@x", 
      'min':-3, 'max':8, 'increment':0.01, 'precision':2},
     {'Name':"y", 
-     'path':"/trackerconfig/transform/displayscale/@y", 
+     'path':"/transform/displayscale/@y", 
      'min':-3, 'max':8, 'increment':0.01, 'precision':2},
     {'Name':"Distortion p2", 
-     'path':"/trackerconfig/transform/distortionparams/@p2", 
+     'path':"/transform/distortionparams/@p2", 
      'min':-3, 'max':3, 'increment':0.001, 'precision':3},
     {'Name':"p3", 
-     'path':"/trackerconfig/transform/distortionparams/@p3", 
+     'path':"/transform/distortionparams/@p3", 
      'min':-3, 'max':3, 'increment':0.001, 'precision':3},
     {'Name':"Trapezoid", 
-     'path':"/trackerconfig/transform/trapezoid/@value", 
-     'min':-3, 'max':3, 'increment':0.00001, 'precision':5},
+     'path':"/transform/trapezoid/@value", 
+     'min':-3, 'max':3, 'increment':0.0001, 'precision':4},
     {'Name':"Angle", 
-     'path':"/trackerconfig/transform/angle/@value", 
+     'path':"/transform/angle/@value", 
      'min':-3.15, 'max':3.15, 'increment':0.01, 'precision':2},
 ])
 
@@ -111,6 +111,7 @@ def PrintDevices(InOrOut):
 def onTouch(Event):
     global OSCClient
     global sendContour
+    return
 
     try:
         if Event.type == avg.CURSORDOWN:
@@ -268,7 +269,7 @@ def onFrame():
 
 #    while MidiIn.Poll():
 #        MidiData = MidiIn.Read(1) # read only 1 message at a time
-#        Tracker.setParam("/trackerconfig/camera/brightness/@value",str(MidiData[0][0][2]*5))
+#        Tracker.setParam("/camera/brightness/@value",str(MidiData[0][0][2]*5))
 #        print "Got message :",MidiData[0][0][0]," ",MidiData[0][0][1]," ",MidiData[0][0][2], MidiData[0][0][3]
 #        print "VALUE=",MidiData[0][0][2]
 
@@ -293,8 +294,8 @@ Tracker.setDebugImages(True, True)
 showImage = True
 
 #OSCClient = OSC.Client("194.95.203.37", 12000)
-OSCClient = OSC.Client("127.0.0.1", 12000)
-OSCClient.setBufSize(65535)
+#OSCClient = OSC.Client("127.0.0.1", 12000)
+#OSCClient.setBufSize(65535)
 
 Bitmap = Tracker.getImage(avg.IMG_DISTORTED)
 
@@ -304,7 +305,7 @@ initMsg.append(320)
 initMsg.append(165)
 #initMsg.append(Bitmap.getSize()[0])
 #initMsg.append(Bitmap.getSize()[1])
-OSCClient.sendMessage(initMsg);
+#OSCClient.sendMessage(initMsg);
 
 Player.setOnFrameHandler(onFrame)
 displayParams()

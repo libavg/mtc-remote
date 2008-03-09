@@ -2,24 +2,25 @@
 <trackerconfig>
  <camera>
   <source value="fw"/>
+  <device value="0"/>
   <format value="MONO8"/>
   <size x="640" y="480"/>
-  <fps value="60"/>
-  <brightness value="1"/>
-  <exposure value="7"/>
+  <fps value="30"/>
+  <brightness value="248"/>
+  <exposure value="37"/>
   <gamma value="0"/>
-  <gain value="16"/>
-  <shutter value="163"/>
+  <gain value="50"/>
+  <shutter value="7"/>
  </camera>
  <tracker>
-  <mask value="images/cameramask.png"/>
   <prescale value="1"/>
   <historyupdateinterval value="25"/>
-  <brighterregions value="true"/>
+  <brighterregions value="false"/>
   <eventonmove value="false"/>
-  <contourprecision value="3"/>
+  <contourprecision value="4"/>
+  <mask value=""/>
   <track>
-   <threshold value="11"/>
+   <threshold value="20"/>
    <similarity value="10"/>
    <areabounds min="1000" max="1000000"/>
    <eccentricitybounds min="1" max="80"/>
@@ -27,9 +28,9 @@
  </tracker>
  <transform>
   <distortionparams p2="0.0" p3="0.0"/>
-  <trapezoid value="0.000"/>
+  <trapezoid value="0.0"/>
   <angle value="0"/>
   <displaydisplacement x="0" y="0"/>
-  <displayscale x="1.5" y="1.5"/>
+  <displayscale x="1.67" y="1.67"/>
  </transform>
 </trackerconfig>

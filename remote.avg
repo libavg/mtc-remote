@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
-<avg id="main" width="960" height="720" onkeyup="onKeyUp"
+<avg id="main" width="1067" height="800" onkeyup="onKeyUp"
         oncursordown="onTouch" oncursorup="onTouch" oncursormove="onTouch">
-    <image id="distorted" x="0" y="0" width="960" height="720" sensitive="false"/>
-    <image id="fingers" x="0" y="0" width="960" height="720" sensitive="false"/>
+    <image id="distorted" x="0" y="0" width="1067" height="800" sensitive="false"/>
+    <image id="fingers" x="0" y="0" width="1067" height="800" sensitive="false"/>
     <words id="fps" x="30" y="30" color="00FF00" text=""/>
-    <div id="gui" x="30" y="490">
+    <div id="gui" x="30" y="570">
         <image id="shadow" x="0" y="13" width="500" height="215" 
                 href="images/black.png" opacity="0.6"/>
         <words x="2" y="13" text="camera" size="16" font="Eurostile" color="00FF00"/>
